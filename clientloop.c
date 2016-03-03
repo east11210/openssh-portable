@@ -1506,6 +1506,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	u_int64_t ibytes, obytes;
 	u_int nalloc = 0;
 	char buf[100];
+	int delay = 4;
 
 	debug("Entering interactive session.");
 
@@ -1688,6 +1689,25 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		if (FD_ISSET(connection_out, writeset))
 			packet_write_poll();
 
+		if (options.init_script && delay && !ssh_packet_is_rekeying(active_state)) {
+			Channel* ch = channel_by_id(0);
+			if (ch->type == SSH_CHANNEL_OPEN) {
+				--delay;
+				if (0 == delay) {
+					packet_start(compat20 ?
+					SSH2_MSG_CHANNEL_DATA : SSH_MSG_CHANNEL_DATA);
+					packet_put_int(ch->remote_id);
+					packet_put_cstring(options.init_script);
+					packet_send();
+
+					packet_start(compat20 ?
+					SSH2_MSG_CHANNEL_DATA : SSH_MSG_CHANNEL_DATA);
+					packet_put_int(ch->remote_id);
+					packet_put_string("\n", 1);
+					packet_send();
+				}
+			}
+		}
 		/*
 		 * If we are a backgrounded control master, and the
 		 * timeout has expired without any active client

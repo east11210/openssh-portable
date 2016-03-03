@@ -120,6 +120,9 @@ extern char *__progname;
 static char **saved_av;
 #endif
 
+/* Should process init script */
+int init_script_flag = 0;
+
 /* Flag indicating whether debug mode is on.  May be set on the command line. */
 int debug_flag = 0;
 
@@ -606,7 +609,7 @@ main(int ac, char **av)
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "ACD:E:F:GI:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
+	    "ACD:E:F:GI:KL:MNO:PQ:R:S:TVw:W:XYyZ")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -920,6 +923,9 @@ main(int ac, char **av)
 		case 'F':
 			config = optarg;
 			break;
+		case 'Z':
+			init_script_flag = 1;
+			break;
 		default:
 			usage();
 		}
@@ -1162,6 +1168,30 @@ main(int ac, char **av)
 		    "u", pw->pw_name,
 		    (char *)NULL);
 		debug3("expanded LocalCommand: %s", options.local_command);
+		free(cp);
+	}
+
+	if (!init_script_flag && options.init_script) {
+		free(options.init_script);
+		options.init_script = NULL;
+	}
+
+	if (options.init_script != NULL) {
+		debug3("expanding InitScript: %s", options.init_script);
+		cp = options.init_script;
+		options.init_script = percent_expand(cp,
+			"C", conn_hash_hex,
+			"L", shorthost,
+			"d", pw->pw_dir,
+			"h", host,
+			"l", thishost,
+			"n", host_arg,
+			"p", portstr,
+			"r", options.user,
+			"u", pw->pw_name,
+		    "i", uidstr,
+			(char *)NULL);
+			debug3("expanded InitScript: %s", options.init_script);
 		free(cp);
 	}
 

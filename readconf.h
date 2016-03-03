@@ -158,6 +158,9 @@ typedef struct {
 	char   *hostbased_key_types;
 	char   *pubkey_key_types;
 
+	char  *init_script;
+	char  *password;
+
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;
 

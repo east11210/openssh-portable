@@ -908,9 +908,13 @@ userauth_passwd(Authctxt *authctxt)
 	if (attempt != 1)
 		error("Permission denied, please try again.");
 
-	snprintf(prompt, sizeof(prompt), "%.30s@%.128s's password: ",
-	    authctxt->server_user, host);
-	password = read_passphrase(prompt, 0);
+	if (options.password && 0 == attempt) {
+		snprintf(prompt, sizeof(prompt), "%.30s@%.128s's password: ",
+	    	authctxt->server_user, host);
+		password = read_passphrase(prompt, 0);
+	} else {
+		password = strdup(options.password);
+	}
 	packet_start(SSH2_MSG_USERAUTH_REQUEST);
 	packet_put_cstring(authctxt->server_user);
 	packet_put_cstring(authctxt->service);
@@ -1553,11 +1557,15 @@ input_userauth_info_req(int type, u_int32_t seq, void *ctxt)
 		prompt = packet_get_string(NULL);
 		echo = packet_get_char();
 
-		response = read_passphrase(prompt, echo ? RP_ECHO : 0);
+		if (options.password && strstr(prompt, "assword:")) {
+			packet_put_cstring(options.password);
+		} else {
+			response = read_passphrase(prompt, echo ? RP_ECHO : 0);
 
-		packet_put_cstring(response);
-		explicit_bzero(response, strlen(response));
-		free(response);
+			packet_put_cstring(response);
+			explicit_bzero(response, strlen(response));
+			free(response);
+		}
 		free(prompt);
 	}
 	packet_check_eom(); /* done with parsing incoming message. */

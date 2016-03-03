@@ -159,6 +159,7 @@ typedef enum {
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oFingerprintHash, oUpdateHostkeys, oHostbasedKeyTypes,
 	oPubkeyAcceptedKeyTypes,
+	oInitScript,oPassword,
 	oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -280,6 +281,8 @@ static struct {
 	{ "updatehostkeys", oUpdateHostkeys },
 	{ "hostbasedkeytypes", oHostbasedKeyTypes },
 	{ "pubkeyacceptedkeytypes", oPubkeyAcceptedKeyTypes },
+	{ "initscript", oInitScript },
+	{ "password", oPassword },
 	{ "ignoreunknown", oIgnoreUnknown },
 
 	{ NULL, oBadOption }
@@ -1543,6 +1546,14 @@ parse_keytypes:
 		multistate_ptr = multistate_yesnoaskconfirm;
 		goto parse_multistate;
 
+	case oInitScript:
+		charptr = &options->init_script;
+		goto parse_command;
+
+	case oPassword:
+		charptr = &options->password;
+		goto parse_string;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1725,6 +1736,8 @@ initialize_options(Options * options)
 	options->update_hostkeys = -1;
 	options->hostbased_key_types = NULL;
 	options->pubkey_key_types = NULL;
+	options->init_script = NULL;
+	options->password = NULL;
 }
 
 /*
