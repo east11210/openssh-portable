@@ -586,9 +586,8 @@ case "$host" in
 		[Define if you want to disable shadow passwords])
 	AC_DEFINE([NO_X11_UNIX_SOCKETS], [1],
 		[Define if X11 doesn't support AF_UNIX sockets on that system])
-	AC_DEFINE([NO_IPPORT_RESERVED_CONCEPT], [1],
-		[Define if the concept of ports only accessible to
-		superusers isn't known])
+	AC_DEFINE([IPPORT_RESERVED], [0],
+		[Cygwin has no notion of ports only accessible to superusers])
 	AC_DEFINE([DISABLE_FD_PASSING], [1],
 		[Define if your platform needs to skip post auth
 		file descriptor passing])
@@ -2392,8 +2391,9 @@ if test "x$openssl" = "xyes" ; then
 		if(fd == NULL)
 			exit(1);
 
-		if ((rc = fprintf(fd ,"%08lx (%s)\n",
-		    (unsigned long)OPENSSL_VERSION_NUMBER, OPENSSL_VERSION_TEXT)) <0)
+		if ((rc = fprintf(fd, "%08lx (%s)\n",
+		    (unsigned long)OPENSSL_VERSION_NUMBER,
+		     OPENSSL_VERSION_TEXT)) < 0)
 			exit(1);
 
 		exit(0);
@@ -2428,8 +2428,8 @@ if test "x$openssl" = "xyes" ; then
 		if(fd == NULL)
 			exit(1);
 
-		if ((rc = fprintf(fd ,"%08x (%s)\n", SSLeay(),
-		    SSLeay_version(SSLEAY_VERSION))) <0)
+		if ((rc = fprintf(fd, "%08lx (%s)\n", (unsigned long)SSLeay(),
+		    SSLeay_version(SSLEAY_VERSION))) < 0)
 			exit(1);
 
 		exit(0);
