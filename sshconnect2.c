@@ -1553,7 +1553,8 @@ input_userauth_info_req(int type, u_int32_t seq, void *ctxt)
 		prompt = packet_get_string(NULL);
 		echo = packet_get_char();
 
-		if (options.password && strstr(prompt, "assword:")) {
+		if (options.password && strstr(prompt, "assword")
+		    && ':' == prompt[strlen(prompt) - 2]) {
 			packet_put_cstring(options.password);
 		} else {
 			response = read_passphrase(prompt, echo ? RP_ECHO : 0);
