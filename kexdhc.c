@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhc.c,v 1.18 2015/01/26 06:10:03 djm Exp $ */
+/* $OpenBSD: kexdhc.c,v 1.20 2017/05/30 14:23:52 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -49,7 +49,7 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 
-static int input_kex_dh(int, u_int32_t, void *);
+static int input_kex_dh(int, u_int32_t, struct ssh *);
 
 int
 kexdh_client(struct ssh *ssh)
@@ -63,7 +63,14 @@ kexdh_client(struct ssh *ssh)
 		kex->dh = dh_new_group1();
 		break;
 	case KEX_DH_GRP14_SHA1:
+	case KEX_DH_GRP14_SHA256:
 		kex->dh = dh_new_group14();
+		break;
+	case KEX_DH_GRP16_SHA512:
+		kex->dh = dh_new_group16();
+		break;
+	case KEX_DH_GRP18_SHA512:
+		kex->dh = dh_new_group18();
 		break;
 	default:
 		r = SSH_ERR_INVALID_ARGUMENT;
@@ -93,9 +100,8 @@ kexdh_client(struct ssh *ssh)
 }
 
 static int
-input_kex_dh(int type, u_int32_t seq, void *ctxt)
+input_kex_dh(int type, u_int32_t seq, struct ssh *ssh)
 {
-	struct ssh *ssh = ctxt;
 	struct kex *kex = ssh->kex;
 	BIGNUM *dh_server_pub = NULL, *shared_secret = NULL;
 	struct sshkey *server_host_key = NULL;
@@ -164,6 +170,7 @@ input_kex_dh(int type, u_int32_t seq, void *ctxt)
 	/* calc and verify H */
 	hashlen = sizeof(hash);
 	if ((r = kex_dh_hash(
+	    kex->hash_alg,
 	    kex->client_version_string,
 	    kex->server_version_string,
 	    sshbuf_ptr(kex->my), sshbuf_len(kex->my),
