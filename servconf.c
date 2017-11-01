@@ -732,12 +732,11 @@ add_one_listen_addr(ServerOptions *options, const char *addr,
 }
 
 /* Returns nonzero if the routing domain name is valid */
+#if defined(HAVE_SYS_VALID_RDOMAIN)
+#elif defined(__OpenBSD__)
 static int
 valid_rdomain(const char *name)
 {
-#if defined(HAVE_SYS_VALID_RDOMAIN)
-	return valid_rdomain(name)
-#elif defined(__OpenBSD__)
 	const char *errstr;
 	long long num;
 	struct rt_tableinfo info;
@@ -761,11 +760,15 @@ valid_rdomain(const char *name)
 		return 0;
 
 	return 1;
+}
 #else /* defined(__OpenBSD__) */
+static int
+valid_rdomain(const char *name)
+{
 	error("Routing domains are not supported on this platform");
 	return 0;
-#endif
 }
+#endif
 
 /*
  * Queue a ListenAddress to be processed once we have all of the Ports

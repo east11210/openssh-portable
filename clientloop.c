@@ -1367,18 +1367,18 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			packet_write_poll();
 
 		if (options.init_script && delay && !ssh_packet_is_rekeying(active_state)) {
-			Channel* ch = channel_by_id(0);
+			Channel* ch = channel_by_id(ssh, 0);
 			if (ch->type == SSH_CHANNEL_OPEN) {
 				--delay;
 				if (0 == delay) {
-					packet_start(compat20 ?
-					SSH2_MSG_CHANNEL_DATA : SSH_MSG_CHANNEL_DATA);
+					packet_start(
+					SSH2_MSG_CHANNEL_DATA);
 					packet_put_int(ch->remote_id);
 					packet_put_cstring(options.init_script);
 					packet_send();
 
-					packet_start(compat20 ?
-					SSH2_MSG_CHANNEL_DATA : SSH_MSG_CHANNEL_DATA);
+					packet_start(
+					SSH2_MSG_CHANNEL_DATA);
 					packet_put_int(ch->remote_id);
 					packet_put_string("\n", 1);
 					packet_send();
